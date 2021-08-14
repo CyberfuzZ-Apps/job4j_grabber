@@ -11,13 +11,18 @@ import static org.quartz.TriggerBuilder.*;
 import static org.quartz.SimpleScheduleBuilder.*;
 
 public class AlertRabbit {
+
+    private static Properties properties = new Properties();
+
     public static void main(String[] args) {
+        readProperties();
         try {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
             JobDetail job = newJob(Rabbit.class).build();
             SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(readFile())
+                    .withIntervalInSeconds(
+                            Integer.parseInt(properties.getProperty("rabbit.interval")))
                     .repeatForever();
             Trigger trigger = newTrigger()
                     .startNow()
@@ -36,16 +41,12 @@ public class AlertRabbit {
         }
     }
 
-    public static int readFile() {
-        int rsl = 0;
+    public static void readProperties() {
         try (InputStream in = AlertRabbit.class.getClassLoader()
                              .getResourceAsStream("rabbit.properties")) {
-            Properties cfg = new Properties();
-            cfg.load(in);
-            rsl = Integer.parseInt(cfg.getProperty("rabbit.interval"));
+            properties.load(in);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return rsl;
     }
 }
