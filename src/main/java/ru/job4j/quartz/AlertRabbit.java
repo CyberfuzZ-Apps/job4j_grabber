@@ -15,9 +15,10 @@ import static org.quartz.SimpleScheduleBuilder.*;
 public class AlertRabbit {
 
     private static Properties properties = new Properties();
-    private static Connection connection;
+    private static JobDataMap data = new JobDataMap();
 
-    public static void connect() {
+    public static Connection connect() {
+        Connection connection = null;
         try {
             Class.forName(properties.getProperty("jdbc.driver"));
             connection = DriverManager.getConnection(
@@ -27,14 +28,15 @@ public class AlertRabbit {
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
+        return connection;
     }
 
     public static void main(String[] args) {
         readProperties();
-        connect();
-        try {
+        try (Connection connection = connect()) {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
+            data.put("conn", connection);
             JobDetail job = newJob(Rabbit.class).build();
             SimpleScheduleBuilder times = simpleSchedule()
                     .withIntervalInSeconds(
@@ -48,8 +50,19 @@ public class AlertRabbit {
             scheduler.scheduleJob(job, trigger);
             Thread.sleep(10000);
             scheduler.shutdown();
-        } catch (SchedulerException | InterruptedException se) {
+        } catch (SchedulerException
+                | InterruptedException
+                | SQLException se) {
             se.printStackTrace();
+        }
+    }
+
+    public static void readProperties() {
+        try (InputStream in = AlertRabbit.class.getClassLoader()
+                .getResourceAsStream("rabbit.properties")) {
+            properties.load(in);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -57,22 +70,14 @@ public class AlertRabbit {
         @Override
         public void execute(JobExecutionContext context) throws JobExecutionException {
             System.out.println("Rabbit runs here ...");
-            try (PreparedStatement pStatement = connection.prepareStatement(
+            Connection conn = (Connection) data.get("conn");
+            try (PreparedStatement pStatement = conn.prepareStatement(
                     "insert into rabbit (created_date) values (?);")) {
                 pStatement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
                 pStatement.execute();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    public static void readProperties() {
-        try (InputStream in = AlertRabbit.class.getClassLoader()
-                             .getResourceAsStream("rabbit.properties")) {
-            properties.load(in);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
