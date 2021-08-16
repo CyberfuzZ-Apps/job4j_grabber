@@ -1,8 +1,24 @@
 package ru.job4j.grabber.utils;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public class SqlRuDateTimeParser implements DateTimeParser {
+
+    private static final Map<String, Integer> MONTHS = Map.ofEntries(
+            Map.entry("янв", 1),
+            Map.entry("фев", 2),
+            Map.entry("мар", 3),
+            Map.entry("апр", 4),
+            Map.entry("май", 5),
+            Map.entry("июн", 6),
+            Map.entry("июл", 7),
+            Map.entry("авг", 8),
+            Map.entry("сен", 9),
+            Map.entry("окт", 10),
+            Map.entry("ноя", 11),
+            Map.entry("дек", 12)
+    );
 
     @Override
     public LocalDateTime parse(String parse) {
@@ -29,23 +45,7 @@ public class SqlRuDateTimeParser implements DateTimeParser {
         } else {
             String[] dayMonthYear = date.split(" ");
             day = Integer.parseInt(dayMonthYear[0]);
-            String stringMonth = dayMonthYear[1];
-            month = switch (stringMonth) {
-                case "янв" -> 1;
-                case "фев" -> 2;
-                case "мар" -> 3;
-                case "апр" -> 4;
-                case "май" -> 5;
-                case "июн" -> 6;
-                case "июл" -> 7;
-                case "авг" -> 8;
-                case "сен" -> 9;
-                case "окт" -> 10;
-                case "ноя" -> 11;
-                case "дек" -> 12;
-                default -> throw new IllegalStateException(
-                        "Unexpected value: " + stringMonth);
-            };
+            month = MONTHS.get(dayMonthYear[1]);
             year = Integer.parseInt(dayMonthYear[2]);
             year = 2000 + year > today.getYear() ? 1900 + year : 2000 + year;
         }
