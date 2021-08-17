@@ -61,17 +61,19 @@ public class PsqlStore implements Store, AutoCloseable {
 
     @Override
     public Post findById(int id) {
-        Post post = new Post();
+        Post post = null;
         try (PreparedStatement statement = cnn.prepareStatement(
                 "select * from post where id = ?")) {
             statement.setInt(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    post.setId(resultSet.getInt("id"));
-                    post.setTitle(resultSet.getString("name"));
-                    post.setLink(resultSet.getString("link"));
-                    post.setDescription(resultSet.getString("text"));
-                    post.setCreated(resultSet.getTimestamp("created").toLocalDateTime());
+                    post = new Post(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getString("link"),
+                            resultSet.getString("text"),
+                            resultSet.getTimestamp("created").toLocalDateTime()
+                    );
                 }
             }
         } catch (SQLException e) {
