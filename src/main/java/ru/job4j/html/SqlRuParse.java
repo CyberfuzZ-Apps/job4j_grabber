@@ -33,7 +33,6 @@ public class SqlRuParse implements Parse {
                 Post post = new Post();
                 post.setLink(href.attr("href"));
                 post.setTitle(href.text());
-                //post.setCreated(new SqlRuDateTimeParser().parse(element.child(5).text()));
                 post.setCreated(dateTimeParser.parse(element.child(5).text()));
                 rsl.add(post);
             }
