@@ -16,25 +16,6 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-/**
- * Описание.
- *
- * ! Программа считывает все вакансии относящиеся к Java и записывает их в базу.
- * ! Первый сайт sql.ru. В нем есть раздел job. "https://www.sql.ru/forum/job-offers/1"
- *
- * ! Система запускается по расписанию.
- * ! Период запуска указывается в настройках - app.properties.
- *
- * ! Доступ к интерфейсу через REST API.
- *
- * ! Приложение собирается в jar.
- *
- *
- * Расширение.
- *
- * 1. Можно добавить новые сайты без изменения кода.
- * 2. Можно сделать параллельный парсинг сайтов.
- */
 public class Grabber implements Grab {
     private final Properties cfg = new Properties();
     private static String link;
